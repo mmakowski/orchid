@@ -1,0 +1,22 @@
+exp        ::= base_exp 
+             | base_exp repeat 
+             | exp*
+repeat     ::= `[` @NUM `]` 
+             | `[` @NUM `,]` 
+             | `[,` @NUM `]` 
+             // TODO: other repeats
+base_exp   ::= subexp                
+             | logical_exp
+             | variable
+             | word
+             // TODO: more
+subexp      ::= `{` exp `}`
+logical_exp ::= base_exp `|` base_exp 
+variable    ::= `%` @VAR `%`
+word        ::= @WORD
+
+
+@NUM ::= [0-9]+
+@VAR ::= ANY|WORD|\+WORD|-WORD // TODO: more
+@WORDCHAR ::= ~[$white[\\]]|(\\~$white)
+@WORD ::= @WORDCHAR+
