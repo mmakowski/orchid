@@ -1,14 +1,14 @@
 name:                orchid
 version:             0.1.0.0
-synopsis:            Initial project template from stack
+synopsis:            Orchestria/CM DataMinder search expression translator
 description:         Please see README.md
-homepage:            https://github.com/githubuser/orchid#readme
+homepage:            https://github.com/mmakowski/orchid#readme
 license:             BSD3
 license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2017 Author name here
-category:            Web
+author:              Maciek Makowski
+maintainer:          maciek+orchid@mmakowski.com
+copyright:           2017 Maciek Makowski
+category:            Text
 build-type:          Simple
 extra-source-files:  README.md
                      src/Orchid/Lexer.x 
@@ -42,4 +42,4 @@ test-suite orchid-test
 
 source-repository head
   type:     git
-  location: https://github.com/githubuser/orchid
+  location: https://github.com/mmakowski/orchid
