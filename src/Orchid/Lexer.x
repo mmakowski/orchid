@@ -1,6 +1,6 @@
 {
 {-# LANGUAGE OverloadedStrings #-}
-module Orchid.Lexer (lmain, scanner) where
+module Orchid.Lexer (scanner) where
 import System.Exit
 import qualified Data.ByteString.Lazy.Char8 as B
 }
@@ -9,25 +9,23 @@ import qualified Data.ByteString.Lazy.Char8 as B
 
 $digit = 0-9            -- digits
 $alpha = [a-zA-Z]       -- alphabetic characters
+$special = [\{\}\|\[\]\%\?\*\\]
+$wildcard = [\?\*]
 
 tokens :-
 
   $white+               ;
-  "--".*                ;
-  let                   { tok (\p _ -> Let p) }
-  in                    { tok (\p _ -> In p) }
-  $digit+                               { tok (\p s -> Int p (read (B.unpack s))) }
-  [\=\+\-\*\/\(\)]                      { tok (\p s -> Sym p (head (B.unpack s))) }
-  $alpha [$alpha $digit \_ \']*         { tok (\p s -> Var p (B.unpack s)) }
+  $digit+               { tok (\p s -> Int p (read (B.unpack s))) }
+  ([$alpha $digit $wildcard [\-]] | \\ $special)+  { tok (\p s -> Word p (B.unpack s)) }
+  [\[\]\,]              { tok (\p s -> Sym p (head (B.unpack s))) }
 
 {
 -- Each right-hand side has type :: AlexPosn -> String -> Token
 -- Some action helpers:
 tok f (p,_,input,_) len = return (f p (B.take (fromIntegral len) input))
--- The token type:
+
 data Token =
-    Let AlexPosn        |
-    In  AlexPosn        |
+    Word AlexPosn String |
     Sym AlexPosn Char   |
     Var AlexPosn String     |
     Int AlexPosn Int    |
@@ -37,9 +35,6 @@ data Token =
 
 alexEOF = return EOF
 
-lmain = if test1 /= result1 then do print test1; exitFailure
-        else print result1
-
 scanner str = runAlex str $ do
   let loop = do tok <- alexMonadScan
                 if tok == EOF
@@ -47,10 +42,4 @@ scanner str = runAlex str $ do
                 else do toks <- loop
                         return (tok:toks)
   loop
-
-test1 = case scanner "  let in 012334\n=+*foo bar__'" of
-          Left err -> error err
-          Right toks -> toks
-
-result1 = [Let (AlexPn 2 1 3),In (AlexPn 6 1 7),Int (AlexPn 9 1 10) 12334,Sym (AlexPn 16 2 1) '=',Sym (AlexPn 17 2 2) '+',Sym (AlexPn 18 2 3) '*',Var (AlexPn 19 2 4) "foo",Var (AlexPn 23 2 8) "bar__'", EOF]
 }
