@@ -1,65 +1,56 @@
 {
-module Orchid.Lexer (Token(..), P, evalP, lexer) where
-
-import Control.Monad.State
-import Control.Monad.Error
-import Data.Word
+{-# LANGUAGE OverloadedStrings #-}
+module Orchid.Lexer (lmain, scanner) where
+import System.Exit
+import qualified Data.ByteString.Lazy.Char8 as B
 }
 
-%wrapper "monad"
+%wrapper "monad-bytestring"
+
+$digit = 0-9            -- digits
+$alpha = [a-zA-Z]       -- alphabetic characters
 
 tokens :-
-    $white+      ;
-    true      {mkT TTrue}
-    false   {mkT TFalse}
-    0       {mkT TZero}
-    succ    {mkT TSucc}
-    pred    {mkT TPred}
-    if     {mkT TIf}
-    then     {mkT TThen}
-    else     {mkT TElse}
-    iszero   {mkT TIsZero}
+
+  $white+               ;
+  "--".*                ;
+  let                   { tok (\p _ -> Let p) }
+  in                    { tok (\p _ -> In p) }
+  $digit+                               { tok (\p s -> Int p (read (B.unpack s))) }
+  [\=\+\-\*\/\(\)]                      { tok (\p s -> Sym p (head (B.unpack s))) }
+  $alpha [$alpha $digit \_ \']*         { tok (\p s -> Var p (B.unpack s)) }
 
 {
-data Token = 
-     TTrue
-     | TFalse
-     | TZero
-     | TSucc
-     | TPred
-     | TIf
-     | TThen
-     | TElse
-     | TIsZero
-     | TEOF
-     deriving (Eq, Show)
+-- Each right-hand side has type :: AlexPosn -> String -> Token
+-- Some action helpers:
+tok f (p,_,input,_) len = return (f p (B.take (fromIntegral len) input))
+-- The token type:
+data Token =
+    Let AlexPosn        |
+    In  AlexPosn        |
+    Sym AlexPosn Char   |
+    Var AlexPosn String     |
+    Int AlexPosn Int    |
+    Err AlexPosn            |
+    EOF
+        deriving (Eq,Show)
 
-type P a = StateT AlexInput (Either String) a
+alexEOF = return EOF
 
-evalP :: P a -> AlexInput -> Either String a
-evalP = evalStateT
+lmain = if test1 /= result1 then do print test1; exitFailure
+        else print result1
 
-alexEOF :: Alex Token
-alexEOF = return TEOF
+scanner str = runAlex str $ do
+  let loop = do tok <- alexMonadScan
+                if tok == EOF
+                then return [tok]
+                else do toks <- loop
+                        return (tok:toks)
+  loop
 
+test1 = case scanner "  let in 012334\n=+*foo bar__'" of
+          Left err -> error err
+          Right toks -> toks
 
-mkT :: Token -> AlexInput -> Int -> Alex Token -- TODO: record token positions
-mkT c (p, _, _, str) len = let t = take len str
-                           in return c
-{-
-                           in case c of
-                                LInteger -> return (IntegerNum ((read t) :: Integer) p)
-                                LBoolean -> return (BooleanVal (if t == "true"
-                                                                   then True
-                                                                   else False
-                                                               ) p)
-                                LString -> return (StringTxt (take (length t - 2) (drop 1 t)) p)
-                                LIdentifier -> return (Identifier t p)
-                                LSection -> return (SectionHeader (take (length t - 2) (drop 1 t)) p)
-                                LAssign -> return (Assignment p)
-                                LEndAssign -> return (EndAssignment p)
--}
-
-lexer :: (Token -> Alex a) -> Alex a
-lexer cont = alexMonadScan >>= cont
+result1 = [Let (AlexPn 2 1 3),In (AlexPn 6 1 7),Int (AlexPn 9 1 10) 12334,Sym (AlexPn 16 2 1) '=',Sym (AlexPn 17 2 2) '+',Sym (AlexPn 18 2 3) '*',Var (AlexPn 19 2 4) "foo",Var (AlexPn 23 2 8) "bar__'", EOF]
 }
