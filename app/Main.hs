@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Orchid.Lexer
 
 main :: IO ()
-main = someFunc
+main =  putStrLn "TODO"
