@@ -1,6 +1,13 @@
 {
 {-# LANGUAGE OverloadedStrings #-}
-module Orchid.Lexer (scanner) where
+module Orchid.Lexer (
+    Alex
+  , Token (..)
+  , alexError
+  , runAlex
+  , scanner
+  , lexwrap
+) where
 
 import qualified Data.ByteString.Lazy.Char8 as B
 }
@@ -27,7 +34,7 @@ tokens :-
 -- Each right-hand side has type :: AlexPosn -> String -> Token
 -- Some action helpers:
 tok f (p,_,input,_) len =
-    return (f p (B.take (fromIntegral len) input))
+  return (f p (B.take (fromIntegral len) input))
 
 data Token = Spc AlexPosn
            | Lit AlexPosn Char
@@ -37,16 +44,20 @@ data Token = Spc AlexPosn
            | Var AlexPosn String
            | Int AlexPosn Int
            | EOF
-    deriving (Eq,Show)
+  deriving (Eq,Show)
 
 alexEOF = return EOF
 
 scanner str = runAlex str $ do
-    let loop = do 
-            tok <- alexMonadScan
-            if tok == EOF
-            then return [tok]
-            else do toks <- loop
-                    return (tok:toks)
-    loop
+  let loop = do 
+          tok <- alexMonadScan
+          if tok == EOF
+          then return [tok]
+          else do toks <- loop
+                  return (tok:toks)
+  loop
+
+lexwrap = (alexMonadScan >>=)
+
 }
+

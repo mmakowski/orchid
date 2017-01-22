@@ -2,9 +2,8 @@
 module Main where
 
 import Orchid.Lexer
+import Orchid.Parser (parse)
 
 main :: IO ()
 main =
-  case scanner "du\\??-pa[13] %ANY%" of
-    Left err -> error err
-    Right toks -> print toks
+  print $ parse "d u p a"
