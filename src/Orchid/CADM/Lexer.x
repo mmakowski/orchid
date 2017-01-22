@@ -21,7 +21,7 @@ $wildcard = [\?\*]
 
 tokens :-
 
-  \% (\+|\-)? $alpha [$alpha $digit]* \%  { tok (\p s -> Var p (B.unpack s)) }
+  \% (\+|\-)? $alpha [$alpha $digit]* \%  { tok (\p s -> Var p ((tail . init . B.unpack) s)) }
   $white+                                 { tok (\p _ -> Spc p) }
   $digit+                                 { tok (\p s -> Int p (read (B.unpack s))) }
   [$alpha $digit [\-]] | \\ $special      { tok (\p s -> Lit p (last (B.unpack s))) }

@@ -6,6 +6,7 @@ module Orchid.CADM.Syntax
 
 data CADMSearchExp = Repeat CADMSearchExp RepeatBound RepeatBound
                    | Word [WordElem]
+                   | Variable String
                    | SubExp [CADMSearchExp]
                    | Alternative CADMSearchExp CADMSearchExp
   deriving (Eq, Show)

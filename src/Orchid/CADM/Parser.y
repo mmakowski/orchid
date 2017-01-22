@@ -3,6 +3,8 @@ module Orchid.CADM.Parser (
     parse
 ) where
 
+import Data.Char (toLower)
+
 import Orchid.CADM.Lexer
 import Orchid.CADM.Syntax
 
@@ -30,15 +32,16 @@ import qualified Data.ByteString.Lazy.Char8 as B
 
 %%
 
-exp  : exp1         { [$1] }
-     | exp1 spc exp { $1:$3 }
+exps : exp          { [$1] }
+     | exp spc exps { $1:$3 }
 
-exp1 : chars         { Word (reverse $1) }
-     | '{' exp '}'   { SubExp $2 }
+exp  : chars         { Word (reverse $1) }
+     | '{' exps '}'  { SubExp $2 }
      | repeat        { $1 }
-     | exp1 '|' exp1 { Alternative $1 $3 }
+     | exp '|' exp   { Alternative $1 $3 }
+     | var           { Variable (map toLower $1) }
 
-repeat : exp1 '[' int ']' { Repeat $1 (Limited $3) (Limited $3) }
+repeat : exp '[' int ']' { Repeat $1 (Limited $3) (Limited $3) }
 
 chars : char        { [$1] }
       | chars char  { $2:$1 }
