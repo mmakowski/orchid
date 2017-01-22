@@ -25,6 +25,8 @@ tokens :-
   $digit+                                 { tok (\p s -> Int p (read (B.unpack s))) }
   [$alpha $digit [\-]] | \\ $special      { tok (\p s -> Lit p (last (B.unpack s))) }
   $wildcard                               { tok (\p s -> Wld p (head (B.unpack s))) }
+  \{                                      { tok (\p s -> CBL p) }
+  \}                                      { tok (\p s -> CBR p) }
   \[                                      { tok (\p s -> SBL p) }
   \]                                      { tok (\p s -> SBR p) }
 
@@ -36,6 +38,8 @@ tok f (p,_,input,_) len =
 data Token = Spc AlexPosn
            | Lit AlexPosn Char
            | Wld AlexPosn Char
+           | CBL AlexPosn
+           | CBR AlexPosn
            | SBL AlexPosn
            | SBR AlexPosn
            | Var AlexPosn String
