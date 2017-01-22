@@ -16,6 +16,7 @@ import qualified Data.ByteString.Lazy.Char8 as B
 %tokentype { Token }
 %lexer {lexwrap} {EOF}
 %monad {Alex}
+%error {parseError}
 
 %token
   spc {Spc _}
@@ -28,14 +29,19 @@ import qualified Data.ByteString.Lazy.Char8 as B
 
 %%
 
-Exp  : Exp1 spc Exp { $1:$3 }
-     | Exp1         { [$1] }
+exp  : exp1 spc exp { $1:$3 }
+     | exp1         { [$1] }
 
-Exp1 : lit          { Word [Literal $1] }
+exp1 : atoms        { Word (reverse $1) }
+
+atoms : atom        { [$1] }
+      | atoms atom  { $2:$1 }
+
+atom : lit { Literal $1 }
+     | wld { parseWildcard $1 }
 
 {
-data CadmSearchExp = Exp [CadmSearchExp]
-                   | Repeat CadmSearchExp RepeatBound RepeatBound
+data CadmSearchExp = Repeat CadmSearchExp RepeatBound RepeatBound
                    | Word [WordElem]
   deriving (Eq, Show)
 
@@ -48,9 +54,14 @@ data RepeatBound = Limited Int
                  | Unlimited
   deriving (Eq, Show)
 
+parseWildcard :: Char -> WordElem
+parseWildcard '*' = AnyChars
+parseWildcard '?' = AnyChar
+parseWildcard c   = error ("internal error: unable to parse " ++ [c] ++ " as wildcard")
+
 --parse :: String -> Either String CadmSearchExp
 parse s = runAlex s parseCadmSearchExp
 
-happyError :: Alex a
-happyError = alexError "TODO: good error message"
+parseError :: Token -> Alex a
+parseError token = alexError ("parse error at " ++ show token)
 }

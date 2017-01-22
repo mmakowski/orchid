@@ -5,7 +5,6 @@ module Orchid.Lexer (
   , Token (..)
   , alexError
   , runAlex
-  , scanner
   , lexwrap
 ) where
 
@@ -14,8 +13,8 @@ import qualified Data.ByteString.Lazy.Char8 as B
 
 %wrapper "monad-bytestring"
 
-$digit = 0-9            -- digits
-$alpha = [a-zA-Z]       -- alphabetic characters
+$digit = 0-9
+$alpha = [a-zA-Z]
 $special = [\{\}\|\[\]\%\?\*\\]
 $wildcard = [\?\*]
 
@@ -31,8 +30,6 @@ tokens :-
 
 {
 
--- Each right-hand side has type :: AlexPosn -> String -> Token
--- Some action helpers:
 tok f (p,_,input,_) len =
   return (f p (B.take (fromIntegral len) input))
 
@@ -48,16 +45,6 @@ data Token = Spc AlexPosn
 
 alexEOF = return EOF
 
-scanner str = runAlex str $ do
-  let loop = do 
-          tok <- alexMonadScan
-          if tok == EOF
-          then return [tok]
-          else do toks <- loop
-                  return (tok:toks)
-  loop
-
 lexwrap = (alexMonadScan >>=)
-
 }
 
