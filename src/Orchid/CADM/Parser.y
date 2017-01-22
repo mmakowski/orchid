@@ -1,18 +1,18 @@
 {
-module Orchid.Parser ( 
+module Orchid.CADM.Parser ( 
     parse
-  , CadmSearchExp (..)
+  , CADMSearchExp (..)
   , WordElem (..)
   , RepeatBound (..)
 ) where
 
-import Orchid.Lexer
+import Orchid.CADM.Lexer
 
 import qualified Data.ByteString.Lazy.Char8 as B
 
 }
 
-%name parseCadmSearchExp
+%name parseCADMSearchExp
 %tokentype { Token }
 %lexer {lexwrap} {EOF}
 %monad {Alex}
@@ -47,9 +47,9 @@ char : lit { Literal $1 }
      | wld { parseWildcard $1 }
 
 {
-data CadmSearchExp = Repeat CadmSearchExp RepeatBound RepeatBound
+data CADMSearchExp = Repeat CADMSearchExp RepeatBound RepeatBound
                    | Word [WordElem]
-                   | SubExp [CadmSearchExp]
+                   | SubExp [CADMSearchExp]
   deriving (Eq, Show)
 
 data WordElem = Literal Char
@@ -66,8 +66,8 @@ parseWildcard '*' = AnyChars
 parseWildcard '?' = AnyChar
 parseWildcard c   = error ("internal error: unable to parse " ++ [c] ++ " as wildcard")
 
---parse :: String -> Either String CadmSearchExp
-parse s = runAlex s parseCadmSearchExp
+--parse :: String -> Either String CADMSearchExp
+parse s = runAlex s parseCADMSearchExp
 
 parseError :: Token -> Alex a
 parseError token = alexError ("parse error at " ++ show token)

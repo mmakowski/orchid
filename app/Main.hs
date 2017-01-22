@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Orchid.Parser (parse)
+import Orchid.CADM.Parser (parse)
 
 main :: IO ()
 main =

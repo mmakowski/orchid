@@ -11,14 +11,14 @@ copyright:           2017 Maciek Makowski
 category:            Text
 build-type:          Simple
 extra-source-files:  README.md
-                     src/Orchid/Lexer.x 
-                     src/Orchid/Parser.y
+                     src/Orchid/CADM/Lexer.x 
+                     src/Orchid/CADM/Parser.y
 cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Orchid.Lexer
-                     , Orchid.Parser
+  exposed-modules:     Orchid.CADM.Lexer
+                     , Orchid.CADM.Parser
   build-depends:       base >= 4.7 && < 5
                      , bytestring >= 0.10 && < 1
                      , array >= 0.5 && < 1

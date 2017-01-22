@@ -1,6 +1,6 @@
 {
 {-# LANGUAGE OverloadedStrings #-}
-module Orchid.Lexer (
+module Orchid.CADM.Lexer (
     Alex
   , Token (..)
   , alexError
