@@ -1,12 +1,10 @@
 {
 module Orchid.CADM.Parser ( 
     parse
-  , CADMSearchExp (..)
-  , WordElem (..)
-  , RepeatBound (..)
 ) where
 
 import Orchid.CADM.Lexer
+import Orchid.CADM.Syntax
 
 import qualified Data.ByteString.Lazy.Char8 as B
 
@@ -47,20 +45,6 @@ char : lit { Literal $1 }
      | wld { parseWildcard $1 }
 
 {
-data CADMSearchExp = Repeat CADMSearchExp RepeatBound RepeatBound
-                   | Word [WordElem]
-                   | SubExp [CADMSearchExp]
-  deriving (Eq, Show)
-
-data WordElem = Literal Char
-              | AnyChars
-              | AnyChar
-  deriving (Eq, Show)
-
-data RepeatBound = Limited Int
-                 | Unlimited
-  deriving (Eq, Show)
-
 parseWildcard :: Char -> WordElem
 parseWildcard '*' = AnyChars
 parseWildcard '?' = AnyChar

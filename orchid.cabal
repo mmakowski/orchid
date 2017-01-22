@@ -19,6 +19,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Orchid.CADM.Lexer
                      , Orchid.CADM.Parser
+                     , Orchid.CADM.Syntax
   build-depends:       base >= 4.7 && < 5
                      , bytestring >= 0.10 && < 1
                      , array >= 0.5 && < 1
