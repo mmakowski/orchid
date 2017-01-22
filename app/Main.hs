@@ -5,4 +5,4 @@ import Orchid.Parser (parse)
 
 main :: IO ()
 main =
-  print $ parse "du?a\\? d*a"
+  print $ parse "du?a[2] d*a\\?"

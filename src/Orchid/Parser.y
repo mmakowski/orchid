@@ -29,20 +29,25 @@ import qualified Data.ByteString.Lazy.Char8 as B
 
 %%
 
-exp  : exp1 spc exp { $1:$3 }
-     | exp1         { [$1] }
+exp  : exp1         { [$1] }
+     | exp1 spc exp { $1:$3 }
 
-exp1 : atoms        { Word (reverse $1) }
+exp1 : chars       { Word (reverse $1) }
+     -- TODO: '{' exp '}'
+     | repeat      { $1 }
 
-atoms : atom        { [$1] }
-      | atoms atom  { $2:$1 }
+repeat : exp1 '[' int ']' { Repeat $1 (Limited $3) (Limited $3) }
 
-atom : lit { Literal $1 }
+chars : char        { [$1] }
+      | chars char  { $2:$1 }
+
+char : lit { Literal $1 }
      | wld { parseWildcard $1 }
 
 {
 data CadmSearchExp = Repeat CadmSearchExp RepeatBound RepeatBound
                    | Word [WordElem]
+                   | SubExp [CadmSearchExp]
   deriving (Eq, Show)
 
 data WordElem = Literal Char
