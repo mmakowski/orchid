@@ -11,6 +11,7 @@ module Orchid.CADM.Lexer (
 import qualified Data.ByteString.Lazy.Char8 as B
 }
 
+-- TODO: use regular strings
 %wrapper "monad-bytestring"
 
 $digit = 0-9
@@ -25,14 +26,15 @@ tokens :-
   $digit+                                 { tok (\p s -> Int p (read (B.unpack s))) }
   [$alpha $digit [\-]] | \\ $special      { tok (\p s -> Lit p (last (B.unpack s))) }
   $wildcard                               { tok (\p s -> Wld p (head (B.unpack s))) }
-  \{                                      { tok (\p s -> CBL p) }
-  \}                                      { tok (\p s -> CBR p) }
-  \[                                      { tok (\p s -> SBL p) }
-  \]                                      { tok (\p s -> SBR p) }
+  \{                                      { tok (\p _ -> CBL p) }
+  \}                                      { tok (\p _ -> CBR p) }
+  \[                                      { tok (\p _ -> SBL p) }
+  \]                                      { tok (\p _ -> SBR p) }
+  $white* \| $white*                      { tok (\p _ -> Pip p) }
 
 {
 
-tok f (p,_,input,_) len =
+tok f (p, _, input, _) len =
   return (f p (B.take (fromIntegral len) input))
 
 data Token = Spc AlexPosn
@@ -44,6 +46,7 @@ data Token = Spc AlexPosn
            | SBR AlexPosn
            | Var AlexPosn String
            | Int AlexPosn Int
+           | Pip AlexPosn
            | EOF
   deriving (Eq,Show)
 

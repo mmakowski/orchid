@@ -24,6 +24,7 @@ import qualified Data.ByteString.Lazy.Char8 as B
   '}' {CBR _}
   '[' {SBL _}
   ']' {SBR _}
+  '|' {Pip _}
   var {Var _ $$}
   int {Int _ $$}
 
@@ -32,9 +33,10 @@ import qualified Data.ByteString.Lazy.Char8 as B
 exp  : exp1         { [$1] }
      | exp1 spc exp { $1:$3 }
 
-exp1 : chars       { Word (reverse $1) }
-     | '{' exp '}' { SubExp $2 }
-     | repeat      { $1 }
+exp1 : chars         { Word (reverse $1) }
+     | '{' exp '}'   { SubExp $2 }
+     | repeat        { $1 }
+     | exp1 '|' exp1 { Alternative $1 $3 }
 
 repeat : exp1 '[' int ']' { Repeat $1 (Limited $3) (Limited $3) }
 
