@@ -12,7 +12,7 @@ import qualified Data.ByteString.Lazy.Char8 as B
 
 }
 
-%name parseCADMSearchExp
+%name parseCADMSearchExps
 %tokentype { Token }
 %lexer {lexwrap} {EOF}
 %monad {Alex}
@@ -42,6 +42,7 @@ exp  : chars         { Word (reverse $1) }
      | var           { Variable (map toLower $1) }
 
 repeat : exp '[' int ']' { Repeat $1 (Limited $3) (Limited $3) }
+       | exp '[' wld ']' { parseRepeatChar $3 $1 }
 
 chars : char        { [$1] }
       | chars char  { $2:$1 }
@@ -55,8 +56,13 @@ parseWildcard '*' = AnyChars
 parseWildcard '?' = AnyChar
 parseWildcard c   = error ("internal error: unable to parse " ++ [c] ++ " as wildcard")
 
---parse :: String -> Either String CADMSearchExp
-parse s = runAlex s parseCADMSearchExp
+parseRepeatChar :: Char -> CADMSearchExp -> CADMSearchExp
+parseRepeatChar '+' exp = Repeat exp (Limited 1) Unlimited
+parseRepeatChar '*' exp = Repeat exp (Limited 0) Unlimited
+parseRepeatChar '?' exp = Repeat exp (Limited 0) (Limited 1)
+
+--parse :: String -> Either String [CADMSearchExp]
+parse s = runAlex s parseCADMSearchExps
 
 parseError :: Token -> Alex a
 parseError token = alexError ("parse error at " ++ show token)
